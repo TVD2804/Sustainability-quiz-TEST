@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>STOCKMEIER Sustainability Quiz</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bitter:wght@700&family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --bg: #f5f5f2;
+      --bg-soft: #eef0ed;
+      --card: #ffffff;
+      --card-soft: #f4f5f3;
+      --card-muted: #eceeeb;
+      --text: #2d3d3c;
+      --muted: #5d6c6b;
+      --brand: #536766;
+      --brand-dark: #2d3d3c;
+      --brand-light: #72807f;
+      --brand-lighter: #b5b9b9;
+      --brand-soft: #d8d8d4;
+      --brand-pale: #f0f0ef;
+      --sustainability: #95c230;
+      --accent: #ef7622;
+      --ok: #4f7f33;
+      --ok-bg: #eef6df;
+      --bad: #ab3f32;
+      --bad-bg: #fbeceb;
+      --warn: #b86a1e;
+      --warn-bg: #fff2e7;
+      --border: #d8d8d4;
+      --line: rgba(83, 103, 102, 0.16);
+      --shadow-soft: 0 10px 28px rgba(45, 61, 60, 0.08);
+      --hero-bg: #536766;
+      --hero-panel: rgba(255,255,255,.08);
+      --hero-border: rgba(255,255,255,.16);
+      --radius-lg: 24px;
+      --radius-md: 18px;
+      --radius-sm: 14px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Open Sans", Arial, sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(149, 194, 48, .07), transparent 32%),
+        linear-gradient(180deg, var(--bg) 0%, #ffffff 100%);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    .app {
+      max-width: 1340px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    .hero {
+      background: var(--hero-bg);
+      color: white;
+      border-radius: 28px;
+      padding: 28px 30px 26px;
+      margin-bottom: 22px;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,.08);
+      box-shadow: var(--shadow-soft);
+      isolation: isolate;
+    }
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='190' viewBox='0 0 220 190'%3E%3Cg fill='none' stroke='rgba(255,255,255,0.13)' stroke-w[...]
+      background-size: 310px auto;
+      background-repeat: repeat;
+      opacity: .55;
+      z-index: -2;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(90deg, rgba(45,61,60,.18), rgba(45,61,60,.02) 55%),
+        radial-gradient(circle at 82% 18%, rgba(149,194,48,.18), transparent 34%);
+      z-index: -1;
+    }
+
+    .hero-top {
+      display: grid;
+      grid-template-columns: minmax(0, 1.55fr) minmax(240px, .72fr);
+      gap: 24px;
+      align-items: start;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero-left { display: grid; gap: 16px; }
+    .hero-right {
+      display: grid;
+      justify-items: end;
+      gap: 16px;
+    }
+
+    .brand-lockup {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.10);
+      border: 1px solid rgba(255,255,255,.16);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      width: fit-content;
+    }
+
+    .brand-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: var(--sustainability);
+      box-shadow: 0 0 0 4px rgba(149,194,48,.15);
+    }
+
+    .stockmeier-logo {
+      width: min(100%, 420px);
+      height: auto;
+      display: block;
+      filter: drop-shadow(0 6px 14px rgba(0,0,0,.12));
+    }
+
+    .hero h1 {
+      margin: 0;
+      font-family: "Bitter", "Open Sans", Arial, sans-serif;
+      font-weight: 700;
+      font-size: clamp(34px, 5vw, 52px);
+      line-height: 1.08;
+      letter-spacing: -.02em;
+      max-width: 11ch;
+    }
+
+    .hero p {
+      margin: 0;
+      max-width: 840px;
+      font-size: 18px;
+      line-height: 1.68;
+      color: rgba(255,255,255,.94);
+    }
+
+    .hero-badges,
+    .top-actions,
+    .meta-row,
+    .btn-row,
+    .leaderboard-tabs { display:flex; flex-wrap:wrap; gap:10px; }
+
+    .hero-badge,
+    .pill,
+    .top-link-btn,
+    .lang-btn {
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.18);
+      background: rgba(255,255,255,.10);
+      color: white;
+      backdrop-filter: blur(10px);
+    }
+
+    .hero-badge,
+    .top-link-btn {
+      padding: 10px 14px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .top-link-btn {
+      cursor: pointer;
+      transition: transform .15s ease, background .15s ease, border-color .15s ease;
+    }
+    .top-link-btn:hover {
+      transform: translateY(-1px);
+      background: rgba(255,255,255,.16);
+      border-color: rgba(255,255,255,.28);
+    }
+
+    /* Actieknoppen in de hero - bewust anders dan de badges en taalknoppen */
+    .top-actions {
+      margin-top: 6px;
+      gap: 12px;
+    }
+
+    .top-actions .top-link-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      min-height: 46px;
+      padding: 12px 18px;
+      border-radius: 14px;
+      font-size: 14px;
+      font-weight: 900;
+      letter-spacing: .01em;
+      border-width: 2px;
+      box-shadow: 0 10px 22px rgba(0,0,0,.16);
+      backdrop-filter: none;
+    }
+
+    .top-action-home {
+      background: rgba(255,255,255,.96);
+      color: var(--brand-dark);
+      border-color: rgba(255,255,255,.96);
+    }
+
+    .top-action-home::before {
+      content: "Home";
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 44px;
+      height: 22px;
+      padding: 0 6px;
+      border-radius: 999px;
+      background: rgba(83,103,102,.12);
+      color: var(--brand-dark);
+      font-size: 11px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+
+... (truncated for brevity) ...
