@@ -1,582 +1,130 @@
+import { PublicClientApplication } from "@azure/msal-browser";
 
-
-<!DOCTYPE html>
-<html lang="nl">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>STOCKMEIER Sustainability Quiz</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Bitter:wght@700&family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
-  
-  <style>
-    :root {
-      --bg: #f5f5f2;
-      --bg-soft: #eef0ed;
-      --card: #ffffff;
-      --card-soft: #f4f5f3;
-      --card-muted: #eceeeb;
-      --text: #2d3d3c;
-      --muted: #5d6c6b;
-      --brand: #536766;
-      --brand-dark: #2d3d3c;
-      --brand-light: #72807f;
-      --brand-lighter: #b5b9b9;
-      --brand-soft: #d8d8d4;
-      --brand-pale: #f0f0ef;
-      --sustainability: #95c230;
-      --accent: #ef7622;
-      --ok: #4f7f33;
-      --ok-bg: #eef6df;
-      --bad: #ab3f32;
-      --bad-bg: #fbeceb;
-      --warn: #b86a1e;
-      --warn-bg: #fff2e7;
-      --border: #d8d8d4;
-      --line: rgba(83, 103, 102, 0.16);
-      --shadow-soft: 0 10px 28px rgba(45, 61, 60, 0.08);
-      --hero-bg: #536766;
-      --hero-panel: rgba(255,255,255,.08);
-      --hero-border: rgba(255,255,255,.16);
-      --radius-lg: 24px;
-      --radius-md: 18px;
-      --radius-sm: 14px;
-    }
-
-    * { box-sizing: border-box; }
-
-    html {
-      scroll-behavior: smooth;
-    }
-
-    body {
-      margin: 0;
-      font-family: "Open Sans", Arial, sans-serif;
-      background:
-        radial-gradient(circle at top left, rgba(149, 194, 48, .07), transparent 32%),
-        linear-gradient(180deg, var(--bg) 0%, #ffffff 100%);
-      color: var(--text);
-      min-height: 100vh;
-    }
-
-    .app {
-      max-width: 1340px;
-      margin: 0 auto;
-      padding: 24px;
-    }
-
-    .hero {
-      background: var(--hero-bg);
-      color: white;
-      border-radius: 28px;
-      padding: 28px 30px 26px;
-      margin-bottom: 22px;
-      position: relative;
-      overflow: hidden;
-      border: 1px solid rgba(255,255,255,.08);
-      box-shadow: var(--shadow-soft);
-      isolation: isolate;
-    }
-
-    .hero::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='190' viewBox='0 0 220 190'%3E%3Cg fill='none' stroke='rgba(255,255,255,0.13)' stroke-w[...]");
-      background-size: 310px auto;
-      background-repeat: repeat;
-      opacity: .55;
-      z-index: -2;
-    }
-
-    .hero::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background:
-        linear-gradient(90deg, rgba(45,61,60,.18), rgba(45,61,60,.02) 55%),
-        radial-gradient(circle at 82% 18%, rgba(149,194,48,.18), transparent 34%);
-      z-index: -1;
-    }
-
-    .hero-top {
-      display: grid;
-      grid-template-columns: minmax(0, 1.55fr) minmax(240px, .72fr);
-      gap: 24px;
-      align-items: start;
-      position: relative;
-      z-index: 1;
-    }
-
-    .hero-left { display: grid; gap: 16px; }
-    .hero-right {
-      display: grid;
-      justify-items: end;
-      gap: 16px;
-    }
-
-    .brand-lockup {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      padding: 8px 12px;
-      border-radius: 999px;
-      background: rgba(255,255,255,.10);
-      border: 1px solid rgba(255,255,255,.16);
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: .12em;
-      text-transform: uppercase;
-      width: fit-content;
-    }
-
-    .brand-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 999px;
-      background: var(--sustainability);
-      box-shadow: 0 0 0 4px rgba(149,194,48,.15);
-    }
-
-    .stockmeier-logo {
-      width: min(100%, 420px);
-      height: auto;
-      display: block;
-      filter: drop-shadow(0 6px 14px rgba(0,0,0,.12));
-    }
-
-    .hero h1 {
-      margin: 0;
-      font-family: "Bitter", "Open Sans", Arial, sans-serif;
-      font-weight: 700;
-      font-size: clamp(34px, 5vw, 52px);
-      line-height: 1.08;
-      letter-spacing: -.02em;
-      max-width: 11ch;
-    }
-
-    .hero p {
-      margin: 0;
-      max-width: 840px;
-      font-size: 18px;
-      line-height: 1.68;
-      color: rgba(255,255,255,.94);
-    }
-
-    .hero-badges,
-    .top-actions,
-    .meta-row,
-    .btn-row,
-    .leaderboard-tabs { display:flex; flex-wrap:wrap; gap:10px; }
-
-    .hero-badge,
-    .pill,
-    .top-link-btn,
-    .lang-btn {
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,.18);
-      background: rgba(255,255,255,.10);
-      color: white;
-      backdrop-filter: blur(10px);
-    }
-
-    .hero-badge,
-    .top-link-btn {
-      padding: 10px 14px;
-      font-size: 13px;
-      font-weight: 700;
-    }
-
-    .top-link-btn {
-      cursor: pointer;
-      transition: transform .15s ease, background .15s ease, border-color .15s ease;
-    }
-    .top-link-btn:hover {
-      transform: translateY(-1px);
-      background: rgba(255,255,255,.16);
-      border-color: rgba(255,255,255,.28);
-    }
-
-    /* Actieknoppen in de hero - bewust anders dan de badges en taalknoppen */
-    .top-actions {
-      margin-top: 6px;
-      gap: 12px;
-    }
-
-    .top-actions .top-link-btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 9px;
-      min-height: 46px;
-      padding: 12px 18px;
-      border-radius: 14px;
-      font-size: 14px;
-      font-weight: 900;
-      letter-spacing: .01em;
-      border-width: 2px;
-      box-shadow: 0 10px 22px rgba(0,0,0,.16);
-      backdrop-filter: none;
-    }
-
-    .top-action-home {
-      background: rgba(255,255,255,.96);
-      color: var(--brand-dark);
-      border-color: rgba(255,255,255,.96);
-    }
-
-    .top-action-home::before {
-      content: "Home";
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-width: 44px;
-      height: 22px;
-      padding: 0 6px;
-      border-radius: 999px;
-      background: rgba(83,103,102,.12);
-      color: var(--brand-dark);
-      font-size: 11px;
-      font-weight: 900;
-      text-transform: uppercase;
-      letter-spacing: .04em;
-    }
-
-    .top-action-leaderboard {
-      background: var(--accent);
-      color: #ffffff;
-      border-color: var(--accent);
-    }
-
-    .top-action-leaderboard::before {
-      content: "Top";
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-width: 34px;
-      height: 22px;
-      padding: 0 6px;
-      border-radius: 999px;
-      background: rgba(255,255,255,.22);
-      color: #ffffff;
-      font-size: 11px;
-      font-weight: 900;
-      text-transform: uppercase;
-      letter-spacing: .04em;
-    }
-
-    .top-action-home:hover {
-      background: #ffffff;
-      border-color: #ffffff;
-      color: var(--brand-dark);
-      box-shadow: 0 14px 28px rgba(0,0,0,.20);
-    }
-
-    .top-action-leaderboard:hover {
-      background: #d85f15;
-      border-color: #d85f15;
-      color: #ffffff;
-      box-shadow: 0 14px 28px rgba(239,118,34,.28);
-    }
-
-    .lang-switch {
-      display: inline-flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      justify-content: flex-end;
-      padding: 10px;
-      border-radius: 18px;
-      background: rgba(255,255,255,.10);
-      border: 1px solid rgba(255,255,255,.16);
-      backdrop-filter: blur(10px);
-    }
-
-    .lang-btn {
-      padding: 10px 14px;
-      font-size: 14px;
-      font-weight: 800;
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      min-width: 88px;
-      justify-content: center;
-      cursor: pointer;
-      transition: transform .15s ease, background .15s ease, color .15s ease, border-color .15s ease;
-      box-shadow:none;
-    }
-
-    .lang-btn.active {
-      background: white;
-      color: var(--brand-dark);
-      border-color: white;
-    }
-
-    .lang-btn:hover { transform: translateY(-1px); }
-
-    .flag { width:22px; height:16px; border-radius:3px; overflow:hidden; box-shadow:0 0 0 1px rgba(0,0,0,.15), 0 2px 4px rgba(0,0,0,.18); display:inline-block; position:relative; flex:0 0 auto; b[...]
-  </style>
-
-</head>
-<body>
-  <div class="app">
-    
-    <section class="hero">
-      <div class="hero-top">
-        <div class="hero-left">
-          <div class="brand-lockup">
-            <span class="brand-dot" aria-hidden="true"></span>
-            <span id="brandTagline">Sustainability Learning Edition</span>
-          </div>
-          <h1 id="heroTitle"></h1>
-          <p id="heroText"></p>
-          <div class="hero-badges">
-            <div class="hero-badge" id="heroRoundBadge"></div>
-          </div>
-          <div class="top-actions">
-            <button id="heroHomeBtn" type="button" class="top-link-btn top-action-home">Home</button>
-            <button id="heroLeaderboardBtn" type="button" class="top-link-btn top-action-leaderboard"></button>
-          </div>
-        </div>
-        <div class="hero-right">
-          <img class="stockmeier-logo" src="data:image/webp;base64,UklGRvoOAABXRUJQVlA4WAoAAAAQAAAA2AEACAEAQUxQSC0AAAABHyAQIFMrTkgRETEJM23bdPyZjOQQ9J0j+j8BV3r4j//4j//4j//+SPy3pQMAVlA4IKYOAACwWQCd[...]" />
-          <div class="lang-switch" aria-label="Language selector">
-            <button type="button" class="lang-btn active" data-lang="en"><span class="flag flag-en"></span><span>EN</span></button>
-            <button type="button" class="lang-btn" data-lang="de"><span class="flag flag-de"></span><span>DE</span></button>
-            <button type="button" class="lang-btn" data-lang="fr"><span class="flag flag-fr"></span><span>FR</span></button>
-            <button type="button" class="lang-btn" data-lang="nl"><span class="flag flag-nl"></span><span>NL</span></button>
-                        
-            
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <div class="layout">
-      <main class="panel">
-        <div class="panel-inner">
-          <section id="startScreen" class="screen">
-            <div class="meta-row">
-              
-            </div>
-            <h2 id="startTitle"></h2>
-            <p id="startText"></p>
-            <div class="field-grid">
-              <div class="field">
-                <label for="playerName" id="playerNameLabel"></label>
-                <input id="playerName" type="text" maxlength="40">
-              </div>
-              <div class="field">
-                <label for="playerCountry" id="playerCountryLabel">Land</label>
-                <select id="playerCountry">
-                  <option value="">Selecteer land</option>
-                </select>
-              </div>
-            </div>
-            <div class="field-grid">
-              <div class="field">
-                <label for="playerLocation" id="playerLocationLabel"></label>
-                <select id="playerLocation" disabled>
-                  <option value="">Kies eerst een land</option>
-                </select>
-              </div>
-              <div class="field">
-                <label for="playerDepartment" id="playerDepartmentLabel"></label>
-                <input id="playerDepartment" type="text" maxlength="60">
-              </div>
-            </div>
-            <div class="btn-row">
-              <button id="continueBtn" class="btn-primary"></button>
-              <button id="openLeaderboardBtn" class="btn-secondary" type="button"></button>
-            </div>
-          </section>
-          <section id="welcomeScreen" class="screen hidden">
-            <div class="meta-row"><div class="pill" id="welcomePill1"></div><div class="pill" id="welcomePill2"></div></div>
-            <div class="welcome-card">
-              <h2 id="welcomeTitle"></h2>
-              <p id="welcomeIntro"></p>
-              <ul class="welcome-list">
-                <li id="welcomeReason1"></li>
-                <li id="welcomeReason2"></li>
-                <li id="welcomeReason3"></li>
-              </ul>
-              <p id="welcomeOutro"></p>
-            </div>
-            <div class="btn-row">
-              <button id="welcomeBackBtn" class="btn-secondary" type="button"></button>
-              <button id="startQuizBtn" class="btn-primary" type="button"></button>
-            </div>
-          </section>
-          <section id="quizScreen" class="screen hidden">
-            <div class="round-banner"><strong id="roundTitle"></strong><div class="pill" id="roundStats"></div></div>
-            <div class="question-header"><div><div id="questionMeta" class="question-meta"></div><h2 id="questionTitle" class="question-title"></h2><div id="questionNote" class="question-note"></div></div></div>
-            <div class="progress-wrap"><div class="progress-bar"><div id="progressFill" class="progress-fill"></div></div></div>
-            <form id="answersForm" class="answers"></form>
-            <div id="feedbackCard" class="feedback-card hidden"></div>
-            <div class="btn-row">
-              <button id="prevBtn" type="button" class="btn-secondary"></button>
-              <button id="checkBtn" type="button" class="btn-primary"></button>
-              <button id="nextBtn" type="button" class="btn-primary hidden"></button>
-              <button id="finishBtn" type="button" class="btn-primary hidden"></button>
-            </div>
-          </section>
-          <section id="leaderboardScreen" class="screen hidden">
-            <div class="meta-row"><div class="pill" id="leaderboardPill1"></div><div class="pill" id="leaderboardPill2"></div></div>
-            <h2 id="leaderboardTitle"></h2>
-            <p id="leaderboardText"></p>
-            <div class="btn-row">
-              <button id="exportCsvBtn" class="btn-primary" type="button"></button>
-              <button id="exportJsonBtn" class="btn-secondary hidden" type="button"></button>
-              <button id="leaderboardBackBtn" class="btn-ghost" type="button"></button>
-            </div>
-            <div class="leaderboard-tabs">
-              <button class="tab-btn active" id="tabPeople" type="button"></button>
-              <button class="tab-btn" id="tabDepartments" type="button"></button>
-              <button class="tab-btn" id="tabLocations" type="button"></button>
-            </div>
-            <div class="leaderboard-tabs" aria-label="Leaderboard scope">
-              <button class="tab-btn active" id="tabCurrentRound" type="button"></button>
-              <button class="tab-btn" id="tabYearTotal" type="button"></button>
-            </div>
-            <div class="leaderboard-card"><div id="leaderboardTableWrap"></div></div>
-          </section>
-          <section id="resultScreen" class="screen hidden">
-            <div class="meta-row"><div class="pill" id="finalResultPill"></div><div class="pill" id="finalBadge"></div></div>
-            <div class="participant-card"><strong id="participantTitle"></strong><div id="participantInfo"></div></div>
-            <h2 id="resultTitle"></h2>
-            <p id="resultText"></p>
-            <div class="mini-grid">
-              <div class="mini-card"><div class="label" id="pointsLabel"></div><div id="finalScoreValue" class="value">0</div></div>
-              <div class="mini-card"><div class="label" id="correctAnswersLabel"></div><div id="finalCorrectValue" class="value">0</div></div>
-            </div>
-            <div class="chart-wrap">
-              <h3 id="graphicScoreboardTitle"></h3>
-              <div><div class="chart-head"><span id="correctLabel"></span><span id="correctBarLabel">0%</span></div><div class="bar-track"><div id="correctBar" class="bar-fill-ok"></div></div></div>
-              <div><div class="chart-head"><span id="incorrectLabel"></span><span id="incorrectBarLabel">0%</span></div><div class="bar-track"><div id="incorrectBar" class="bar-fill-bad"></div></div></div>
-            </div>
-            <div><h3 id="answerReviewTitle"></h3><div id="reviewList" class="review-list"></div></div>
-            <div class="btn-row"><button id="restartBtn" class="btn-primary"></button><button id="resultLeaderboardBtn" class="btn-secondary"></button><button id="resultExportBtn" class="btn-ghos[...]
-          </section>
-        </div>
-      </main>
-      <aside class="sidebar">
-        <section class="panel"><div class="panel-inner score-box"><h3 id="quizFocusTitle"></h3><div class="big-score"></div><p id="quizFocusText">Sustainable Development Goals</p><img id="prizePh[...]"/></div></section>
-      </aside>
-    </div>
-    <footer class="sustainability-footer">
-      <span id="sustainabilityFooterText"></span>
-      <a id="sustainabilityFooterLink" href="https://www.stockmeier.com/en/responsibility/sustainability/" target="_blank" rel="noopener noreferrer" title="https://www.stockmeier.com/en/responsibility/sustainability/">Link</a>
-    </footer>
-  </div>
-<script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
-  <script>
-let questionBank = {
-  en: [],
-  nl: [],
-  fr: [],
-  de: []
+/* =========================================================
+   FILL IN THESE VALUES FROM YOUR ENTRA EXTERNAL ID APP
+   ========================================================= */
+const authSettings = {
+  clientId: "REPLACE_WITH_APPLICATION_CLIENT_ID",
+  tenantId: "REPLACE_WITH_DIRECTORY_TENANT_ID",
+  ciamHost: "REPLACE_WITH_SUBDOMAIN.ciamlogin.com",
+  redirectUri: window.location.origin + window.location.pathname
 };
 
-async function loadQuestionBank() {
-  try {
-    const response = await fetch(QUESTION_FILE + '?v=' + new Date().getTime());
+const msalConfig = {
+  auth: {
+    clientId: authSettings.clientId,
+    authority: `https://${authSettings.ciamHost}/${authSettings.tenantId}`,
+    knownAuthorities: [authSettings.ciamHost],
+    redirectUri: authSettings.redirectUri,
+    postLogoutRedirectUri: authSettings.redirectUri,
+    navigateToLoginRequestUrl: true
+  },
+  cache: {
+    cacheLocation: "sessionStorage",
+    storeAuthStateInCookie: false
+  }
+};
 
-    if (!response.ok) {
-      throw new Error('Could not load ' + QUESTION_FILE + '. HTTP status: ' + response.status);
-    }
+const loginRequest = { scopes: ["openid", "profile", "email"] };
+let msalInstance = null;
+let currentAccount = null;
 
-    const data = await response.arrayBuffer();
-    const workbook = XLSX.read(data, { type: 'array' });
+function setAuthStatus(message, isError = false){
+  const status = document.getElementById("authStatus");
+  if(!status) return;
+  status.textContent = message || "";
+  status.classList.toggle("error", Boolean(isError));
+}
 
-    const loadedQuestionBank = {
-      en: [],
-      nl: [],
-      fr: [],
-      de: []
-    };
+function getQuizUserProfile(){
+  if(!currentAccount) return null;
+  const claims = currentAccount.idTokenClaims || {};
+  return {
+    userId: claims.sub || claims.oid || currentAccount.homeAccountId || "",
+    email: claims.email || (Array.isArray(claims.emails) ? claims.emails[0] : "") || currentAccount.username || "",
+    displayName: claims.name || currentAccount.name || "",
+    country: claims.country || claims.countryRegion || "",
+    location: claims.extension_location || claims.location || "",
+    department: claims.extension_department || claims.department || "",
+    language: claims.locale || claims.preferredLanguage || ""
+  };
+}
 
-    ['EN', 'NL', 'FR', 'DE'].forEach(sheetName => {
-      const worksheet = workbook.Sheets[sheetName];
-      if (!worksheet) {
-        console.warn('Missing worksheet in ' + QUESTION_FILE + ':', sheetName);
-        return;
-      }
+function updateAuthenticationInterface(){
+  const gate = document.getElementById("authGate");
+  const app = document.getElementById("quizApplication");
+  const user = document.getElementById("loggedInUser");
+  const logout = document.getElementById("logoutButton");
+  const login = document.getElementById("entraLoginButton");
 
-      const rows = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
-      const lang = sheetName.toLowerCase();
-
-      rows.forEach(row => {
-        if (!String(row.question || '').trim()) return;
-
-        const options = [row.option1, row.option2, row.option3, row.option4]
-          .map(value => String(value || '').trim())
-          .filter(value => value.length > 0);
-
-        const correct = String(row.correct || '')
-          .split(',')
-          .map(value => value.trim())
-          .filter(value => value.length > 0)
-          .map(value => Number(value))
-          .filter(value => Number.isInteger(value));
-
-        loadedQuestionBank[lang].push({
-          type: String(row.type || 'single').trim().toLowerCase(),
-          question: String(row.question || '').trim(),
-          note: String(row.note || '').trim(),
-          options,
-          correct,
-          explanation: String(row.explanation || '').trim()
-        });
-      });
-    });
-
-    questionBank = loadedQuestionBank;
-
-    const missingLanguages = Object.entries(questionBank)
-      .filter(([, questions]) => !questions.length)
-      .map(([lang]) => lang.toUpperCase());
-
-    if (missingLanguages.length) {
-      throw new Error('No questions loaded for: ' + missingLanguages.join(', '));
-    }
-
-    console.log('Question bank loaded successfully from ' + QUESTION_FILE, questionBank);
-  } catch (error) {
-    console.error('Error loading ' + QUESTION_FILE, error);
-    alert('The quiz questions could not be loaded from ' + QUESTION_FILE + '. Please check that ' + QUESTION_FILE + ' is in the same folder as index.html and contains sheets EN, NL, FR and DE.');
+  if(currentAccount){
+    gate?.classList.add("hidden");
+    app?.classList.remove("hidden");
+    logout?.classList.remove("hidden");
+    if(login) login.disabled = false;
+    const profile = getQuizUserProfile();
+    if(user) user.textContent = profile?.displayName || profile?.email || "Signed in";
+    setAuthStatus("");
+  } else {
+    gate?.classList.remove("hidden");
+    app?.classList.add("hidden");
+    logout?.classList.add("hidden");
+    if(user) user.textContent = "";
+    if(login) login.disabled = false;
+    setAuthStatus("Log in or create an account to continue.");
   }
 }
 
-const ui = {
-  nl: {
-    brandTagline:'A journey towards a sustainable future',heroTitle:'STOCKMEIER Duurzaamheidsquiz',heroText:'Deze quiz maakt duurzaamheid concreet in het dagelijkse werk, met directe feedback, ee[...]'
-  },
-  en: {brandTagline:'A journey towards a sustainable future',heroTitle:'STOCKMEIER Sustainability Quiz',heroText:'This quiz makes sustainability practical in daily work, with instant feedback, a [...]'
-  },
-  fr: {brandTagline:'A journey towards a sustainable future',heroTitle:'Quiz durabilité STOCKMEIER',heroText:'Ce quiz rend la durabilité concrète dans le travail quotidien, avec un retour imm�[...]'
-  },
-  de: {brandTagline:'A journey towards a sustainable future',heroTitle:'STOCKMEIER Nachhaltigkeitsquiz',heroText:'Dieses Quiz macht Nachhaltigkeit im Arbeitsalltag konkret – mit Sofort-Feedback[...]'
-  };
+async function initialiseEntraAuthentication(){
+  try {
+    setAuthStatus("Checking sign-in status...");
+    msalInstance = new PublicClientApplication(msalConfig);
+    await msalInstance.initialize();
+    const redirectResponse = await msalInstance.handleRedirectPromise();
 
-// =======================================================
-// RONDE-INSTELLINGEN
-// De huidige ronde wordt opgehaald uit QuizSettings.xlsx.
-// Pas dus niet meer handmatig CURRENT_ROUND aan in deze HTML.
-// De Excelbestanden moeten exact heten:
-// Questions - Round 1.xlsx t/m Questions - Round 12.xlsx
-// Het instellingenbestand moet exact heten:
-// QuizSettings.xlsx
-// =======================================================
-const TOTAL_ROUNDS = 12;
-const SETTINGS_FILE = 'QuizSettings.xlsx';
-let CURRENT_ROUND = 1;
-let QUESTION_FILE = `Questions - Round ${CURRENT_ROUND}.xlsx`;
+    if(redirectResponse?.account){
+      currentAccount = redirectResponse.account;
+      msalInstance.setActiveAccount(currentAccount);
+    } else {
+      const accounts = msalInstance.getAllAccounts();
+      currentAccount = accounts[0] || null;
+      if(currentAccount) msalInstance.setActiveAccount(currentAccount);
+    }
 
-const STORAGE_KEY = 'stockmeier-sustainability-quiz-stockmeier-v5-rounds';
-const DEBUG_SCREEN_KEY = 'stockmeier-debug-screen';
-const POWER_AUTOMATE_SUBMIT_URL = 'https://defaulta4b546f6bf0d4dd8a0fddf27d41681.92.environment.api.powerplatform.com:443/powerautomate/automations/direct/cu/01/workflows/820e1b8ec3a145d880b8d9be[...]';
+    updateAuthenticationInterface();
+    return currentAccount;
+  } catch(error){
+    console.error("Microsoft Entra External ID initialization failed:", error);
+    setAuthStatus(error.message || "Sign-in could not be initialized.", true);
+    throw error;
+  }
+}
 
-// truncated for brevity in the pushed file
-  </script>
-</body>
-</html>
+async function signInToQuiz(){
+  if(!msalInstance) await initialiseEntraAuthentication();
+  const button = document.getElementById("entraLoginButton");
+  if(button) button.disabled = true;
+  setAuthStatus("Opening secure sign-in...");
+  await msalInstance.loginRedirect(loginRequest);
+}
+
+async function signOutOfQuiz(){
+  if(!msalInstance) return;
+  await msalInstance.logoutRedirect({
+    account: msalInstance.getActiveAccount() || currentAccount,
+    postLogoutRedirectUri: authSettings.redirectUri
+  });
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("entraLoginButton")?.addEventListener("click", signInToQuiz);
+  document.getElementById("logoutButton")?.addEventListener("click", signOutOfQuiz);
+});
+
+window.quizAuthentication = {
+  initialise: initialiseEntraAuthentication,
+  signIn: signInToQuiz,
+  signOut: signOutOfQuiz,
+  getProfile: getQuizUserProfile,
+  isAuthenticated: () => Boolean(currentAccount)
+};
