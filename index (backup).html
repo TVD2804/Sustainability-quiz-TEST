@@ -1244,56 +1244,21 @@ function compareLeaderboardEntries(a,b){
 }
 
 function downloadTextFile(filename, text, mime){ const blob = new Blob([text], {type: mime || 'text/plain;charset=utf-8;'}); const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = filename; document.body.appendChild(link); link.click(); document.body.removeChild(link); setTimeout(()=> URL.revokeObjectURL(link.href), 500); }
-async function loadParticipantProfileFromSharePoint(authenticatedProfile){
-  if(!authenticatedProfile || !authenticatedProfile.userId || !POWER_AUTOMATE_LEADERBOARD_URL){
-    return { found:false, country:'', location:'', department:'' };
-  }
-  try {
-    const response = await fetch(POWER_AUTOMATE_LEADERBOARD_URL, {
-      method: 'POST',
-      mode: 'cors',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        request: 'profile',
-        userId: authenticatedProfile.userId
-      })
-    });
-    if(!response.ok){
-      throw new Error('Profile request failed. HTTP status: ' + response.status);
-    }
-    const profile = await response.json();
-    return {
-      found: profile.found === true,
-      country: String(profile.country || profile.Country || ''),
-      location: String(profile.location || profile.Location || ''),
-      department: String(profile.department || profile.Department || '')
-    };
-  } catch(error){
-    console.error('Could not load participant profile from SharePoint:', error);
-    return { found:false, country:'', location:'', department:'' };
-  }
-}
-async function applyAuthenticatedParticipant(profile){
+function applyAuthenticatedParticipant(profile){
   if(!profile) return;
+  const savedProfile = window.quizAuthentication.getSavedQuizProfile();
   playerName = profile.displayName || profile.email || playerName;
-  const sharePointProfile = await loadParticipantProfileFromSharePoint(profile);
-  if(sharePointProfile.found){
-    playerCountry = sharePointProfile.country;
-    playerLocation = sharePointProfile.location;
-    playerDepartment = sharePointProfile.department;
-  }
-  if(els.playerNameInput){
-    els.playerNameInput.value = playerName;
-    els.playerNameInput.readOnly = true;
-  }
-  if(els.playerCountryInput) els.playerCountryInput.value = playerCountry;
+  playerCountry = savedProfile.country || playerCountry;
+  playerLocation = savedProfile.location || playerLocation;
+  playerDepartment = savedProfile.department || playerDepartment;
+  if(els.playerNameInput){ els.playerNameInput.value=playerName; els.playerNameInput.readOnly=true; }
+  if(els.playerCountryInput) els.playerCountryInput.value=playerCountry;
   populateLocationDropdown(playerCountry, playerLocation);
-  if(els.playerLocationInput) els.playerLocationInput.value = playerLocation;
-  if(els.playerDepartmentInput) els.playerDepartmentInput.value = playerDepartment;
-  updateParticipantInfo();
+  if(els.playerLocationInput) els.playerLocationInput.value=playerLocation;
+  if(els.playerDepartmentInput) els.playerDepartmentInput.value=playerDepartment;
 }
 function updateParticipantInfo(){ els.participantInfo.innerHTML = '<strong>' + escapeHtml(playerName || t('guest')) + '</strong><br>' + escapeHtml(x(t('branchDept'), {branch: playerLocation || '-', department: playerDepartment || '-'})); }
-function validateParticipantFields(){ playerName=els.playerNameInput.value.trim(); playerCountry=els.playerCountryInput.value.trim(); playerLocation=els.playerLocationInput.value.trim(); playerDepartment=els.playerDepartmentInput.value.trim(); if(!playerName || !playerCountry || !playerLocation || !playerDepartment){ alert(t('missingFields')); return false; } updateParticipantInfo(); return true; }
+function validateParticipantFields(){ playerName=els.playerNameInput.value.trim(); playerCountry=els.playerCountryInput.value.trim(); playerLocation=els.playerLocationInput.value.trim(); playerDepartment=els.playerDepartmentInput.value.trim(); if(!playerName || !playerCountry || !playerLocation || !playerDepartment){ alert(t('missingFields')); return false; } if(window.quizAuthentication){ window.quizAuthentication.saveQuizProfile({country:playerCountry,location:playerLocation,department:playerDepartment}); } updateParticipantInfo(); return true; }
 function updateHeroRoundBadge(){
   const badge = document.getElementById('heroRoundBadge');
   if(!badge) return;
@@ -1628,7 +1593,7 @@ document.querySelectorAll('.lang-btn').forEach(button=> button.addEventListener(
   await loadQuestionBank();
 
   initDropdowns();
-  await applyAuthenticatedParticipant(authenticatedProfile);
+  applyAuthenticatedParticipant(authenticatedProfile);
   initSession();
   applyLanguage();
   updateParticipantInfo();
