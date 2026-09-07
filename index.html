@@ -609,11 +609,36 @@ button {
       .leaderboard-table th, .leaderboard-table td { font-size:13px; padding:8px 6px; }
       .brand-lockup { font-size: 11px; letter-spacing: .1em; }
     }
+
+    /* Entra External ID login */
+    .auth-gate{min-height:100vh;display:grid;place-items:center;padding:24px;background:radial-gradient(circle at top left,rgba(149,194,48,.12),transparent 34%),linear-gradient(135deg,#f5f5f2,#eef0ed)}
+    .auth-card{width:min(100%,540px);padding:38px;border-radius:24px;background:#fff;border:1px solid var(--border);box-shadow:0 24px 70px rgba(45,61,60,.16);text-align:center;display:grid;gap:16px}
+    .auth-card h1{margin:0;font-family:"Bitter","Open Sans",Arial,sans-serif;color:var(--brand-dark)}
+    .auth-card p{margin:0;color:var(--muted);line-height:1.65}
+    .auth-brand{display:inline-flex;align-items:center;justify-content:center;gap:10px;width:fit-content;margin:0 auto;padding:9px 14px;border-radius:999px;background:var(--brand-pale);color:var(--brand-dark);font-size:12px;font-weight:900;letter-spacing:.09em;text-transform:uppercase}
+    .auth-status{min-height:24px;color:var(--muted);font-size:14px}.auth-status.error{color:var(--bad)}
+    .auth-card .btn-primary{width:100%}.auth-privacy{font-size:12px}
+    .quiz-account-bar{display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-wrap:wrap;color:#fff}
+    #loggedInUser{font-size:13px;font-weight:800}
+    #logoutButton{padding:9px 13px;border-radius:12px;color:#fff;border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.10)}
+
   </style>
 
 </head>
 <body>
-  <div class="app">
+
+  <section id="authGate" class="auth-gate">
+    <div class="auth-card">
+      <div class="auth-brand"><span class="brand-dot" aria-hidden="true"></span> STOCKMEIER</div>
+      <h1>Sustainability Quiz</h1>
+      <p>Log in or create an account once to participate in the quiz.</p>
+      <div id="authStatus" class="auth-status">Checking sign-in status...</div>
+      <button id="entraLoginButton" class="btn-primary" type="button">Log in or create account</button>
+      <p class="auth-privacy">Your email address is used to manage your quiz account and link your results.</p>
+    </div>
+  </section>
+
+  <div id="quizApplication" class="app hidden">
     
     <section class="hero">
       <div class="hero-top">
@@ -634,6 +659,10 @@ button {
         </div>
         <div class="hero-right">
           <img class="stockmeier-logo" src="data:image/webp;base64,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" />
+          <div class="quiz-account-bar">
+            <span id="loggedInUser"></span>
+            <button id="logoutButton" class="hidden" type="button">Log out</button>
+          </div>
           <div class="lang-switch" aria-label="Language selector">
             <button type="button" class="lang-btn active" data-lang="en"><span class="flag flag-en"></span><span>EN</span></button>
             <button type="button" class="lang-btn" data-lang="de"><span class="flag flag-de"></span><span>DE</span></button>
@@ -764,6 +793,8 @@ button {
       <a id="sustainabilityFooterLink" href="https://www.stockmeier.com/en/responsibility/sustainability/" target="_blank" rel="noopener noreferrer" title="https://www.stockmeier.com/en/responsibility/sustainability/"></a>.
     </footer>
   </div>
+<script src="https://alcdn.msauth.net/browser/2.35.0/js/msal-browser.min.js"></script>
+<script src="./auth.js"></script>
 <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
   <script>
 let questionBank = {
@@ -923,6 +954,8 @@ async function loadQuizSettings() {
 async function sendScoreToPowerAutomate(entry) {
   if (!POWER_AUTOMATE_SUBMIT_URL) return;
   const payload = {
+    userId: entry.userId || '',
+    email: entry.email || '',
     name: entry.name || '',
     department: entry.department || '',
     location: entry.location || '',
@@ -1161,6 +1194,8 @@ async function refreshSharePointLeaderboard() {
     const board = Array.isArray(data) ? data.map(item => {
       const roundScore = Number(item.roundScore) || Number(item.score) || 0;
       return {
+        userId: item.userId || item.EntraUserId || '',
+        email: item.email || item.Email || '',
         name: item.name || '',
         department: item.department || '',
         location: item.location || '',
@@ -1209,8 +1244,21 @@ function compareLeaderboardEntries(a,b){
 }
 
 function downloadTextFile(filename, text, mime){ const blob = new Blob([text], {type: mime || 'text/plain;charset=utf-8;'}); const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = filename; document.body.appendChild(link); link.click(); document.body.removeChild(link); setTimeout(()=> URL.revokeObjectURL(link.href), 500); }
+function applyAuthenticatedParticipant(profile){
+  if(!profile) return;
+  const savedProfile = window.quizAuthentication.getSavedQuizProfile();
+  playerName = profile.displayName || profile.email || playerName;
+  playerCountry = savedProfile.country || playerCountry;
+  playerLocation = savedProfile.location || playerLocation;
+  playerDepartment = savedProfile.department || playerDepartment;
+  if(els.playerNameInput){ els.playerNameInput.value=playerName; els.playerNameInput.readOnly=true; }
+  if(els.playerCountryInput) els.playerCountryInput.value=playerCountry;
+  populateLocationDropdown(playerCountry, playerLocation);
+  if(els.playerLocationInput) els.playerLocationInput.value=playerLocation;
+  if(els.playerDepartmentInput) els.playerDepartmentInput.value=playerDepartment;
+}
 function updateParticipantInfo(){ els.participantInfo.innerHTML = '<strong>' + escapeHtml(playerName || t('guest')) + '</strong><br>' + escapeHtml(x(t('branchDept'), {branch: playerLocation || '-', department: playerDepartment || '-'})); }
-function validateParticipantFields(){ playerName=els.playerNameInput.value.trim(); playerCountry=els.playerCountryInput.value.trim(); playerLocation=els.playerLocationInput.value.trim(); playerDepartment=els.playerDepartmentInput.value.trim(); if(!playerName || !playerCountry || !playerLocation || !playerDepartment){ alert(t('missingFields')); return false; } updateParticipantInfo(); return true; }
+function validateParticipantFields(){ playerName=els.playerNameInput.value.trim(); playerCountry=els.playerCountryInput.value.trim(); playerLocation=els.playerLocationInput.value.trim(); playerDepartment=els.playerDepartmentInput.value.trim(); if(!playerName || !playerCountry || !playerLocation || !playerDepartment){ alert(t('missingFields')); return false; } if(window.quizAuthentication){ window.quizAuthentication.saveQuizProfile({country:playerCountry,location:playerLocation,department:playerDepartment}); } updateParticipantInfo(); return true; }
 function updateHeroRoundBadge(){
   const badge = document.getElementById('heroRoundBadge');
   if(!badge) return;
@@ -1311,8 +1359,11 @@ function finishQuiz(){
   const maxScore = getTotalPossibleMax();
   const percentage = Math.round((roundScore/maxScore)*100);
   const createdAt = new Date().toISOString();
+  const authenticatedProfile = window.quizAuthentication ? window.quizAuthentication.getProfile() : null;
   const resultEntry = {
-    name: playerName,
+    userId: authenticatedProfile?.userId || '',
+    email: authenticatedProfile?.email || '',
+    name: authenticatedProfile?.displayName || playerName,
     country: playerCountry,
     location: playerLocation,
     department: playerDepartment,
@@ -1336,12 +1387,12 @@ function finishQuiz(){
 }
 function resetApp(){ showView('start'); els.playerNameInput.value=playerName; els.playerCountryInput.value=playerCountry; populateLocationDropdown(playerCountry, playerLocation); els.playerLocationInput.value=playerLocation; els.playerDepartmentInput.value=playerDepartment; initSession(); updateParticipantInfo(); updateSidebar(); }
 function getParticipantRoundKey(item){
-  return [
+  const participantKey = item.userId ? String(item.userId).trim().toLowerCase() : [
     (item.name || t('guest')).trim().toLowerCase(),
     (item.department || '').trim().toLowerCase(),
-    (item.location || '').trim().toLowerCase(),
-    Number(item.round) || 1
+    (item.location || '').trim().toLowerCase()
   ].join('|');
+  return [participantKey, Number(item.round) || 1].join('|');
 }
 function getFirstAttemptPerPersonPerRound(rows){
   const attemptMap = {};
@@ -1355,6 +1406,7 @@ function getFirstAttemptPerPersonPerRound(rows){
   return Object.values(attemptMap);
 }
 function getParticipantKey(item){
+  if(item.userId) return String(item.userId).trim().toLowerCase();
   return [
     (item.name || t('guest')).trim().toLowerCase(),
     (item.department || '').trim().toLowerCase(),
@@ -1503,8 +1555,8 @@ async function openLeaderboard(){ previousViewBeforeLeaderboard=currentView; sho
 function closeLeaderboard(){ showView(previousViewBeforeLeaderboard || 'start'); }
 function exportCsv(){
   const raw=loadBoard();
-  const csv=[['name','country','location','department','round','roundScore','score','maxPoints','percentage','language','createdAt','answerSummary']]
-    .concat(raw.map(item=> [item.name||'', item.country||'', item.location||'', item.department||'', item.round||'', item.roundScore||item.score||0, item.score||item.roundScore||0, item.maxScore||getTotalPossibleMax(), item.percentage||'', item.language||'', item.createdAt||'', item.answerSummary||'']))
+  const csv=[['userId','email','name','country','location','department','round','roundScore','score','maxPoints','percentage','language','createdAt','answerSummary']]
+    .concat(raw.map(item=> [item.userId||'', item.email||'', item.name||'', item.country||'', item.location||'', item.department||'', item.round||'', item.roundScore||item.score||0, item.score||item.roundScore||0, item.maxScore||getTotalPossibleMax(), item.percentage||'', item.language||'', item.createdAt||'', item.answerSummary||'']))
     .map(row=> row.map(cell=> '"'+String(cell).replace(/"/g,'""')+'"').join(','))
     .join('\n');
   downloadTextFile('stockmeier_quiz_results_rounds.csv', csv, 'text/csv;charset=utf-8;');
@@ -1533,10 +1585,15 @@ document.getElementById('tabCurrentRound').addEventListener('click', ()=> { curr
 document.getElementById('tabYearTotal').addEventListener('click', ()=> { currentLeaderboardScope='yearTotal'; renderLeaderboard(); });
 document.querySelectorAll('.lang-btn').forEach(button=> button.addEventListener('click', ()=> { currentLang=button.dataset.lang; const wasLeaderboard=currentView==='leaderboard'; const wasQuiz=currentView==='quiz'; const keepParticipant = currentView==='start' || currentView==='welcome' || currentView==='leaderboard' || currentView==='result'; if(wasQuiz){ repeatQueue=[]; inRepeatRound=false; currentIndex=0; questionStates=[]; const oldName=playerName, oldCountry=playerCountry, oldLoc=playerLocation, oldDep=playerDepartment; playerName=oldName; playerCountry=oldCountry; playerLocation=oldLoc; playerDepartment=oldDep; initSession(); showView('start'); } applyLanguage(); }));
 (async function initialiseQuizApplication() {
+  try {
+    const authenticatedAccount = await window.quizAuthentication.initialise();
+    if(!authenticatedAccount) return;
+    const authenticatedProfile = window.quizAuthentication.getProfile();
   await loadQuizSettings();
   await loadQuestionBank();
 
   initDropdowns();
+  applyAuthenticatedParticipant(authenticatedProfile);
   initSession();
   applyLanguage();
   updateParticipantInfo();
@@ -1563,6 +1620,11 @@ if(savedDebugState){
   showView('start');
 }
 refreshSharePointLeaderboard();
+  } catch(error){
+    console.error('Quiz initialization failed:', error);
+    const status=document.getElementById('authStatus');
+    if(status){status.textContent=error.message||String(error);status.classList.add('error');}
+  }
 })();
 </script>
 </body>
