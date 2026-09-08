@@ -1590,8 +1590,8 @@ async function openLeaderboard(){ previousViewBeforeLeaderboard=currentView; sho
 function closeLeaderboard(){ showView(previousViewBeforeLeaderboard || 'start'); }
 function exportCsv(){
   const raw=loadBoard();
-  const csv=[['userId','email','name','country','location','department','round','roundScore','score','maxPoints','percentage','language','createdAt','answerSummary']]
-    .concat(raw.map(item=> [item.userId||'', item.email||'', item.name||'', item.country||'', item.location||'', item.department||'', item.round||'', item.roundScore||item.score||0, item.score||item.roundScore||0, item.maxScore||getTotalPossibleMax(), item.percentage||'', item.language||'', item.createdAt||'', item.answerSummary||'']))
+  const csv=[['userId','name','country','location','department','round','roundScore','score','maxPoints','percentage','language','createdAt','answerSummary']]
+    .concat(raw.map(item=> [item.userId||'', item.name||'', item.country||'', item.location||'', item.department||'', item.round||'', item.roundScore||item.score||0, item.score||item.roundScore||0, item.maxScore||getTotalPossibleMax(), item.percentage||'', item.language||'', item.createdAt||'', item.answerSummary||'']))
     .map(row=> row.map(cell=> '"'+String(cell).replace(/"/g,'""')+'"').join(','))
     .join('\n');
   downloadTextFile('stockmeier_quiz_results_rounds.csv', csv, 'text/csv;charset=utf-8;');
