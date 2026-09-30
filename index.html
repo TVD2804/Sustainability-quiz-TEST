@@ -841,22 +841,36 @@ async function loadQuestionBank() {
         return;
       }
 
-      const rows = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
+      // Read as a matrix so sheets without a header row (such as NL) are also supported.
+      const matrix = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
 
       if (loadedQuestionBank[lang].length) return;
-      rows.forEach(row => {
+
+      const expectedHeaders = ['type','question','note','option1','option2','option3','option4','correct','explanation'];
+      const firstRow = (matrix[0] || []).map(value => String(value || '').trim().toLowerCase());
+      const hasNamedHeaderRow = firstRow.includes('question') && firstRow.includes('correct');
+      const hasGenericHeaderRow = firstRow.length >= 8 && firstRow.slice(0, 8).every((value, index) => value === 'column' + (index + 1));
+      const dataRows = (hasNamedHeaderRow || hasGenericHeaderRow) ? matrix.slice(1) : matrix;
+
+      dataRows.forEach(values => {
+        const row = {};
+        expectedHeaders.forEach((header, index) => { row[header] = values[index] ?? ''; });
         if (!String(row.question || '').trim()) return;
 
         const options = [row.option1, row.option2, row.option3, row.option4]
           .map(value => String(value || '').trim())
           .filter(value => value.length > 0);
 
-        const correct = String(row.correct || '')
+        // Excel stores answer numbers as 1-4, while JavaScript option indexes are 0-3.
+        const excelCorrect = String(row.correct || '')
           .split(',')
           .map(value => value.trim())
           .filter(value => value.length > 0)
           .map(value => Number(value))
           .filter(value => Number.isInteger(value));
+        const correct = excelCorrect.map(value =>
+          value >= 1 && value <= options.length ? value - 1 : value
+        );
 
         loadedQuestionBank[lang].push({
           type: String(row.type || 'single').trim().toLowerCase(),
