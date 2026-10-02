@@ -1,8 +1,8 @@
 /* Microsoft Entra External ID authentication for the Sustainability Quiz */
 const AUTH_SETTINGS = {
-  clientId: "be527a41-15ad-4dbd-b705-231535f83d39",
-  tenantId: "ffd10b73-d357-4068-ab82-b941b9b0279e",
-  ciamHost: "quizaccounts.ciamlogin.com",
+  clientId: "8a4102ef-2c38-4d1c-b339-6518c7998564",
+  tenantId: "75dbea5e-2f82-4419-942f-7ab0ff209f26",
+  ciamHost: "StockmeierLoginScreen.ciamlogin.com",
   redirectUri: "https://tvd2804.github.io/Sustainability-quiz-TEST/"
 };
 
