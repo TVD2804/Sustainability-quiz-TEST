@@ -926,6 +926,9 @@ ui.pl=Object.assign({},ui.en,{"heroTitle":"Quiz zrównoważonego rozwoju STOCKME
 // =======================================================
 const TOTAL_ROUNDS = 12;
 const SETTINGS_FILE = 'QuizSettings.xlsx';
+const INTRODUCTION_FILE = 'RoundIntroductions.xlsx';
+let roundIntroductions = {};
+let currentRoundIntroduction = null;
 let CURRENT_ROUND = 1;
 let QUESTION_FILE = `Questions - Round ${CURRENT_ROUND}.xlsx`;
 
@@ -981,6 +984,62 @@ async function loadQuizSettings() {
     console.error('Could not load current round from ' + SETTINGS_FILE + '. Falling back to round ' + fallbackRound + '.', error);
     applyRound(fallbackRound);
   }
+}
+
+async function loadRoundIntroductions() {
+  try {
+    const response = await fetch(INTRODUCTION_FILE + '?v=' + new Date().getTime());
+    if (!response.ok) throw new Error('Could not load ' + INTRODUCTION_FILE + '. HTTP status: ' + response.status);
+    const data = await response.arrayBuffer();
+    const workbook = XLSX.read(data, { type: 'array' });
+    const worksheet = workbook.Sheets['Introductions'] || workbook.Sheets[workbook.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
+    roundIntroductions = {};
+    rows.forEach(row => {
+      const round = Number(row.Round || row.round);
+      const language = String(row.Language || row.language || '').trim().toLowerCase();
+      const lang = language === 'ge' ? 'de' : language;
+      if (!Number.isInteger(round) || !lang) return;
+      roundIntroductions[round] = roundIntroductions[round] || {};
+      roundIntroductions[round][lang] = {
+        sdg: String(row.SDG || row.sdg || '').trim(),
+        title: String(row.Title || row.title || '').trim(),
+        introduction: String(row.Introduction || row.introduction || '').trim(),
+        highlights: [row.Highlight1, row.Highlight2, row.Highlight3].map(v => String(v || '').trim()).filter(Boolean),
+        buttonText: String(row.ButtonText || row.buttonText || '').trim()
+      };
+    });
+    updateCurrentRoundIntroduction();
+  } catch (error) {
+    console.error('Could not load round introductions:', error);
+    roundIntroductions = {};
+    currentRoundIntroduction = null;
+  }
+}
+function updateCurrentRoundIntroduction() {
+  const byRound = roundIntroductions[CURRENT_ROUND] || {};
+  currentRoundIntroduction = byRound[currentLang] || byRound.en || null;
+  renderRoundIntroduction();
+}
+function renderRoundIntroduction() {
+  const intro = currentRoundIntroduction;
+  if (!intro) return;
+  const title = document.getElementById('welcomeTitle');
+  const text = document.getElementById('welcomeIntro');
+  const outro = document.getElementById('welcomeOutro');
+  const pill1 = document.getElementById('welcomePill1');
+  const pill2 = document.getElementById('welcomePill2');
+  const button = document.getElementById('startQuizBtn');
+  if (title) title.textContent = intro.title;
+  if (text) text.textContent = intro.introduction;
+  if (pill1) pill1.textContent = 'SDG ' + intro.sdg;
+  if (pill2) pill2.textContent = (currentLang === 'nl' ? 'Ronde ' : 'Round ') + CURRENT_ROUND;
+  ['welcomeReason1','welcomeReason2','welcomeReason3'].forEach((id,index) => {
+    const el = document.getElementById(id);
+    if (el) { el.textContent = intro.highlights[index] || ''; el.classList.toggle('hidden', !intro.highlights[index]); }
+  });
+  if (outro) outro.classList.add('hidden');
+  if (button && intro.buttonText) button.textContent = intro.buttonText;
 }
 
 async function sendScoreToPowerAutomate(entry) {
@@ -1360,7 +1419,7 @@ function applyLanguage(){
   document.getElementById('welcomeReason3').innerHTML = t('welcomeReason3');
   if(els.playerNameInput && els.playerNameInput.tagName !== 'SELECT') els.playerNameInput.placeholder = t('playerNamePlaceholder'); if(els.playerLocationInput && els.playerLocationInput.tagName !== 'SELECT') els.playerLocationInput.placeholder=t('playerLocationPlaceholder'); if(els.playerDepartmentInput && els.playerDepartmentInput.tagName !== 'SELECT') els.playerDepartmentInput.placeholder=t('playerDepartmentPlaceholder'); refreshDropdownLanguage();
   document.querySelectorAll('.lang-btn').forEach(btn=> btn.classList.toggle('active', btn.dataset.lang===currentLang));
-  updateParticipantInfo(); renderBoard(); updateSidebar(); if(!screens.quiz.classList.contains('hidden')) renderQuestion(); if(!screens.result.classList.contains('hidden')) renderResultOnly(); if(!screens.leaderboard.classList.contains('hidden')) renderLeaderboard();
+  updateParticipantInfo(); updateCurrentRoundIntroduction(); renderBoard(); updateSidebar(); if(!screens.quiz.classList.contains('hidden')) renderQuestion(); if(!screens.result.classList.contains('hidden')) renderResultOnly(); if(!screens.leaderboard.classList.contains('hidden')) renderLeaderboard();
 }
 function renderBoard(){
   const board = getFirstAttemptPerPersonPerRound(loadBoard().filter(item => Number(item.round) === CURRENT_ROUND)).sort(compareLeaderboardEntries);
@@ -1663,6 +1722,7 @@ document.querySelectorAll('.lang-btn').forEach(button=> button.addEventListener(
     if(!authenticatedAccount) return;
     const authenticatedProfile = window.quizAuthentication.getProfile();
   await loadQuizSettings();
+  await loadRoundIntroductions();
   await loadQuestionBank();
 
   initDropdowns();
