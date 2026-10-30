@@ -625,7 +625,14 @@ button {
     #loggedInUser{font-size:13px;font-weight:800}
     #logoutButton{padding:9px 13px;border-radius:12px;color:#fff;border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.10)}
 
-  </style>
+  
+/* Readable SDG introduction paragraphs, without changing other quiz screens. */
+#roundIntroScreen .round-intro-paragraphs { max-width: 72ch; margin: 1rem 0 1.4rem; }
+#roundIntroScreen .round-intro-paragraphs p { margin: 0 0 1rem; line-height: 1.7; text-align: left; overflow-wrap: anywhere; }
+#roundIntroScreen .round-intro-paragraphs p:last-child { margin-bottom: 0; }
+#roundIntroScreen .welcome-list { margin-top: 1.25rem; padding-left: 1.4rem; }
+#roundIntroScreen .welcome-list li { margin-bottom: .55rem; line-height: 1.5; }
+</style>
 
 </head>
 <body>
@@ -740,7 +747,7 @@ button {
             <div class="meta-row"><div class="pill" id="roundIntroPill1"></div><div class="pill" id="roundIntroPill2"></div></div>
             <div class="welcome-card">
               <h2 id="roundIntroTitle"></h2>
-              <p id="roundIntroText"></p>
+              <div id="roundIntroText" class="round-intro-paragraphs"></div>
               <ul class="welcome-list">
                 <li id="roundIntroHighlight1"></li>
                 <li id="roundIntroHighlight2"></li>
@@ -1047,9 +1054,16 @@ function renderRoundIntroduction() {
   const pill2 = document.getElementById('roundIntroPill2');
   const button = document.getElementById('roundIntroStartBtn');
   if (title) title.textContent = intro.title;
-  if (text) text.textContent = intro.introduction;
+  if (text) {
+    text.replaceChildren();
+    String(intro.introduction || '').split(/\r?\n\s*\r?\n/).map(part => part.trim()).filter(Boolean).forEach(part => {
+      const paragraph = document.createElement('p');
+      paragraph.textContent = part;
+      text.appendChild(paragraph);
+    });
+  }
   if (pill1) pill1.textContent = 'SDG ' + intro.sdg;
-  if (pill2) pill2.textContent = (currentLang === 'nl' ? 'Ronde ' : 'Round ') + CURRENT_ROUND;
+  if (pill2) pill2.textContent = ({en:'Round ',nl:'Ronde ',fr:'Manche ',de:'Runde ',sp:'Ronda ',it:'Turno ',pl:'Runda '}[currentLang] || 'Round ') + CURRENT_ROUND;
   ['roundIntroHighlight1','roundIntroHighlight2','roundIntroHighlight3'].forEach((id,index) => {
     const el = document.getElementById(id);
     if (el) { el.textContent = intro.highlights[index] || ''; el.classList.toggle('hidden', !intro.highlights[index]); }

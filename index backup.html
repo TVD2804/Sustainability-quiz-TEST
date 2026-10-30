@@ -736,6 +736,22 @@ button {
               <button id="startQuizBtn" class="btn-primary" type="button"></button>
             </div>
           </section>
+          <section id="roundIntroScreen" class="screen hidden">
+            <div class="meta-row"><div class="pill" id="roundIntroPill1"></div><div class="pill" id="roundIntroPill2"></div></div>
+            <div class="welcome-card">
+              <h2 id="roundIntroTitle"></h2>
+              <p id="roundIntroText"></p>
+              <ul class="welcome-list">
+                <li id="roundIntroHighlight1"></li>
+                <li id="roundIntroHighlight2"></li>
+                <li id="roundIntroHighlight3"></li>
+              </ul>
+            </div>
+            <div class="btn-row">
+              <button id="roundIntroBackBtn" class="btn-secondary" type="button"></button>
+              <button id="roundIntroStartBtn" class="btn-primary" type="button"></button>
+            </div>
+          </section>
           <section id="quizScreen" class="screen hidden">
             <div class="round-banner"><strong id="roundTitle"></strong><div class="pill" id="roundStats"></div></div>
             <div class="question-header"><div><div id="questionMeta" class="question-meta"></div><h2 id="questionTitle" class="question-title"></h2><div id="questionNote" class="question-note"></div></div><div class="pill" id="currentProgressPill"></div></div>
@@ -1024,21 +1040,20 @@ function updateCurrentRoundIntroduction() {
 function renderRoundIntroduction() {
   const intro = currentRoundIntroduction;
   if (!intro) return;
-  const title = document.getElementById('welcomeTitle');
-  const text = document.getElementById('welcomeIntro');
-  const outro = document.getElementById('welcomeOutro');
-  const pill1 = document.getElementById('welcomePill1');
-  const pill2 = document.getElementById('welcomePill2');
-  const button = document.getElementById('startQuizBtn');
+  const title = document.getElementById('roundIntroTitle');
+  const text = document.getElementById('roundIntroText');
+  const outro = null;
+  const pill1 = document.getElementById('roundIntroPill1');
+  const pill2 = document.getElementById('roundIntroPill2');
+  const button = document.getElementById('roundIntroStartBtn');
   if (title) title.textContent = intro.title;
   if (text) text.textContent = intro.introduction;
   if (pill1) pill1.textContent = 'SDG ' + intro.sdg;
   if (pill2) pill2.textContent = (currentLang === 'nl' ? 'Ronde ' : 'Round ') + CURRENT_ROUND;
-  ['welcomeReason1','welcomeReason2','welcomeReason3'].forEach((id,index) => {
+  ['roundIntroHighlight1','roundIntroHighlight2','roundIntroHighlight3'].forEach((id,index) => {
     const el = document.getElementById(id);
     if (el) { el.textContent = intro.highlights[index] || ''; el.classList.toggle('hidden', !intro.highlights[index]); }
   });
-  if (outro) outro.classList.add('hidden');
   if (button && intro.buttonText) button.textContent = intro.buttonText;
 }
 
@@ -1096,6 +1111,7 @@ let sessionQuestions = [], currentIndex = 0, answers = [], questionStates = [], 
 const screens = {
   start: document.getElementById('startScreen'),
   welcome: document.getElementById('welcomeScreen'),
+  roundIntro: document.getElementById('roundIntroScreen'),
   quiz: document.getElementById('quizScreen'),
   leaderboard: document.getElementById('leaderboardScreen'),
   result: document.getElementById('resultScreen')
@@ -1417,6 +1433,8 @@ function applyLanguage(){
   document.getElementById('welcomeReason1').innerHTML = t('welcomeReason1');
   document.getElementById('welcomeReason2').innerHTML = t('welcomeReason2');
   document.getElementById('welcomeReason3').innerHTML = t('welcomeReason3');
+  const roundIntroBackBtn = document.getElementById('roundIntroBackBtn');
+  if(roundIntroBackBtn) roundIntroBackBtn.textContent = t('welcomeBackBtn');
   if(els.playerNameInput && els.playerNameInput.tagName !== 'SELECT') els.playerNameInput.placeholder = t('playerNamePlaceholder'); if(els.playerLocationInput && els.playerLocationInput.tagName !== 'SELECT') els.playerLocationInput.placeholder=t('playerLocationPlaceholder'); if(els.playerDepartmentInput && els.playerDepartmentInput.tagName !== 'SELECT') els.playerDepartmentInput.placeholder=t('playerDepartmentPlaceholder'); refreshDropdownLanguage();
   document.querySelectorAll('.lang-btn').forEach(btn=> btn.classList.toggle('active', btn.dataset.lang===currentLang));
   updateParticipantInfo(); updateCurrentRoundIntroduction(); renderBoard(); updateSidebar(); if(!screens.quiz.classList.contains('hidden')) renderQuestion(); if(!screens.result.classList.contains('hidden')) renderResultOnly(); if(!screens.leaderboard.classList.contains('hidden')) renderLeaderboard();
@@ -1436,6 +1454,7 @@ function renderBoard(){
 }
 function updateSidebar(){ const total=sessionQuestions.length || questionBank[currentLang].length; const visibleIndex=screens.quiz.classList.contains('hidden') ? 0 : currentIndex+1; els.sidebarQuestion.textContent = visibleIndex + ' / ' + total; els.sidebarSaved.textContent = countChecked(); els.currentProgressPill.textContent = x(t('savedProgress'), {saved: countChecked(), total}); if(els.roundStats) els.roundStats.textContent = x(t('roundStats'), {score: totalScore(), repeatCount: openRepeatCount(), round: CURRENT_ROUND, totalRounds: TOTAL_ROUNDS}); }
 function openWelcome(){ if(!validateParticipantFields()) return; showView('welcome'); }
+function openRoundIntroduction(){ updateCurrentRoundIntroduction(); showView('roundIntro'); }
 function startQuiz(){ initSession(); showView('quiz'); renderQuestion(); }
 function bindAnswerEvents(){ els.answersForm.querySelectorAll('input').forEach(input=> input.addEventListener('change', handleAnswerChange)); }
 function handleAnswerChange(){ const item=sessionQuestions[currentIndex]; const cards=els.answersForm.querySelectorAll('.answer'); if(item.type==='multiple'){ answers[currentIndex]=[]; els.answersForm.querySelectorAll('input:checked').forEach(inp=> answers[currentIndex].push(Number(inp.value))); answers[currentIndex].sort((a,b)=>a-b); }else{ const sel=els.answersForm.querySelector('input:checked'); answers[currentIndex]=sel ? Number(sel.value) : null; } cards.forEach(card=> card.classList.toggle('selected', !!card.querySelector('input').checked)); }
@@ -1700,7 +1719,9 @@ function exportJson(){ downloadTextFile('stockmeier_quiz_results.json', JSON.str
 document.getElementById('heroHomeBtn').addEventListener('click', goHome);
 document.getElementById('continueBtn').addEventListener('click', openWelcome);
 document.getElementById('welcomeBackBtn').addEventListener('click', ()=> showView('start'));
-document.getElementById('startQuizBtn').addEventListener('click', startQuiz);
+document.getElementById('startQuizBtn').addEventListener('click', openRoundIntroduction);
+document.getElementById('roundIntroBackBtn').addEventListener('click', () => showView('welcome'));
+document.getElementById('roundIntroStartBtn').addEventListener('click', startQuiz);
 document.getElementById('prevBtn').addEventListener('click', prevQuestion);
 document.getElementById('checkBtn').addEventListener('click', checkAnswer);
 document.getElementById('nextBtn').addEventListener('click', goForward);
@@ -1715,7 +1736,7 @@ document.getElementById('tabDepartments').addEventListener('click', ()=> { curre
 document.getElementById('tabLocations').addEventListener('click', ()=> { currentLeaderboardTab='locations'; renderLeaderboard(); });
 document.getElementById('tabCurrentRound').addEventListener('click', ()=> { currentLeaderboardScope='currentRound'; renderLeaderboard(); });
 document.getElementById('tabYearTotal').addEventListener('click', ()=> { currentLeaderboardScope='yearTotal'; renderLeaderboard(); });
-document.querySelectorAll('.lang-btn').forEach(button=> button.addEventListener('click', ()=> { currentLang=button.dataset.lang; const wasLeaderboard=currentView==='leaderboard'; const wasQuiz=currentView==='quiz'; const keepParticipant = currentView==='start' || currentView==='welcome' || currentView==='leaderboard' || currentView==='result'; if(wasQuiz){ repeatQueue=[]; inRepeatRound=false; currentIndex=0; questionStates=[]; const oldName=playerName, oldCountry=playerCountry, oldLoc=playerLocation, oldDep=playerDepartment; playerName=oldName; playerCountry=oldCountry; playerLocation=oldLoc; playerDepartment=oldDep; initSession(); showView('start'); } applyLanguage(); }));
+document.querySelectorAll('.lang-btn').forEach(button=> button.addEventListener('click', ()=> { currentLang=button.dataset.lang; const wasLeaderboard=currentView==='leaderboard'; const wasQuiz=currentView==='quiz'; const keepParticipant = currentView==='start' || currentView==='welcome' || currentView==='roundIntro' || currentView==='leaderboard' || currentView==='result'; if(wasQuiz){ repeatQueue=[]; inRepeatRound=false; currentIndex=0; questionStates=[]; const oldName=playerName, oldCountry=playerCountry, oldLoc=playerLocation, oldDep=playerDepartment; playerName=oldName; playerCountry=oldCountry; playerLocation=oldLoc; playerDepartment=oldDep; initSession(); showView('start'); } applyLanguage(); }));
 (async function initialiseQuizApplication() {
   try {
     const authenticatedAccount = await window.quizAuthentication.initialise();
